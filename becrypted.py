@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives import serialization,hashes
 from cryptography.fernet import Fernet
 
 class becrypted:
-    def GenerateAssymetricKey(path: 'for storing generated files') -> '2 files: public_key.pem private_key.pem':
+    def GenerateAsymmetricKey(path: 'for storing generated files') -> '2 files: public_key.pem private_key.pem':
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -52,7 +52,7 @@ class becrypted:
         file = open('SymmetricKey.key', 'wb')
         file.write(key)
         file.close()
-    def EncryptTextSymmetric(path_to_key,message: 'your desired message to encrypt') -> string :
+    def EncryptTextSymmetric(path_to_key,message: 'your desired message to encrypt') -> 'encrypted text as string' :
         message = message.encode()
         with open(path_to_key,'rb') as f:
             key = f.read()
@@ -71,7 +71,7 @@ class becrypted:
             f.write(encrypted)
         return True
 
-    def DecryptTextSymmetric(path_to_key,text: 'encrypted text') -> string:
+    def DecryptTextSymmetric(path_to_key,text: 'encrypted text') -> 'encrypted text as string':
         text = text.encode()
         with open(path_to_key,'rb') as f:
             key = f.read()
