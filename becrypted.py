@@ -88,8 +88,12 @@ class becrypted:
             key = f.read()
         f = Fernet(key)
         decrypted = f.decrypt(text)
-        with open(path_to_output,'w') as f:
-            f.write(decrypted.decode())
+        try:
+            with open(path_to_output,'w') as f:
+                f.write(decrypted.decode())
+        except:
+            with open(path_to_output,'wb') as f:
+                f.write(decrypted)
 
     def EncryptTextAsymmetric(self,message,path_to_public,path_to_output) -> '1 file: encrypted text in file':
         message = message.encode()
@@ -214,5 +218,5 @@ class becrypted:
                 t = h.read()
             f.write(t)
         os.remove('./.sec2.sym')
-        self.DecryptFileSymmetric(sym,'./.final.sym',file_out)        
+        self.DecryptFileSymmetric(sym,'./.final.sym',file_out)
         os.remove('./.final.sym')
