@@ -1,4 +1,4 @@
-import base64,os
+import base64,os,sys
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa,padding
@@ -6,7 +6,9 @@ from cryptography.hazmat.primitives import serialization,hashes
 from cryptography.fernet import Fernet
 
 class becrypted:
-    def GenerateAsymmetricKey(path: 'for storing generated files') -> '2 files: public_key.pem private_key.pem':
+    def __init__(self):
+        pass
+    def GenerateAsymmetricKey(self,path: 'for storing generated files') -> '2 files: public_key.pem private_key.pem':
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -36,7 +38,7 @@ class becrypted:
             return False
         print ("Successfully created public and private keys in path '{}'".format(path))
 
-    def GenerateSymmetricKey(path_to_store: 'for storing generated file',password) -> '1 file: SymmetricKey.key':
+    def GenerateSymmetricKey(self,path_to_store: 'for storing generated file',password) -> '1 file: SymmetricKey.key':
         password_provided = password
         password = password_provided.encode()
         salt = '{}'.format(os.urandom(16))
@@ -52,7 +54,7 @@ class becrypted:
         file = open('SymmetricKey.key', 'wb')
         file.write(key)
         file.close()
-    def EncryptTextSymmetric(path_to_key,message: 'your desired message to encrypt') -> 'encrypted text as string' :
+    def EncryptTextSymmetric(self,path_to_key,message: 'your desired message to encrypt') -> 'encrypted text as string' :
         message = message.encode()
         with open(path_to_key,'rb') as f:
             key = f.read()
@@ -60,7 +62,7 @@ class becrypted:
         encrypted = f.encrypt(message)
         return encrypted.decode()
 
-    def EncryptFileSymmetric(path_to_key,path_to_input,path_to_output) -> '1 file: encrypted file':
+    def EncryptFileSymmetric(self,path_to_key,path_to_input,path_to_output) -> '1 file: encrypted file':
         with open(path_to_input,'rb') as f:
             message = f.read()
         with open(path_to_key,'rb') as f:
@@ -71,7 +73,7 @@ class becrypted:
             f.write(encrypted)
         return True
 
-    def DecryptTextSymmetric(path_to_key,text: 'encrypted text') -> 'encrypted text as string':
+    def DecryptTextSymmetric(self,path_to_key,text: 'encrypted text') -> 'encrypted text as string':
         text = text.encode()
         with open(path_to_key,'rb') as f:
             key = f.read()
@@ -79,7 +81,7 @@ class becrypted:
         decrypted = f.decrypt(text)
         return decrypted.decode()
 
-    def DecryptFileSymmetric(path_to_key,path_to_input,path_to_output) -> '1 file: decrypted file':
+    def DecryptFileSymmetric(self,path_to_key,path_to_input,path_to_output) -> '1 file: decrypted file':
         with open(path_to_input,'rb') as f:
             text = f.read()
         with open(path_to_key,'rb') as f:
@@ -89,7 +91,7 @@ class becrypted:
         with open(path_to_output,'w') as f:
             f.write(decrypted.decode())
 
-    def EncryptTextAsymmetric(message,path_to_public,path_to_output) -> '1 file: encrypted text in file':
+    def EncryptTextAsymmetric(self,message,path_to_public,path_to_output) -> '1 file: encrypted text in file':
         message = message.encode()
         with open(path_to_public, "rb") as key_file:
             public_key = serialization.load_pem_public_key(
@@ -108,7 +110,8 @@ class becrypted:
             f.write(encrypted)
 
 
-    def EncryptFileAsymmetric(path_to_input,path_to_public,path_to_output) -> '1 file: encrypted file':
+    def EncryptFileAsymmetric(self,path_to_input,path_to_public,path_to_output) -> '1 file: encrypted file':
+
         with open(path_to_input,'rb') as f:
             message = f.read()
         with open(path_to_public, "rb") as key_file:
@@ -128,7 +131,7 @@ class becrypted:
             f.write(encrypted)
 
 
-    def DecryptTextAsymmetric(path_to_encrypted,path_to_private) -> 'decrypted text as string':
+    def DecryptTextAsymmetric(self,path_to_encrypted,path_to_private) -> 'decrypted text as string':
         with open(path_to_private, "rb") as key_file:
             private_key = serialization.load_pem_private_key(
                 key_file.read(),
@@ -149,7 +152,7 @@ class becrypted:
         return original_message.decode()
 
 
-    def DecryptFileAsymmetric(path_to_encrypted,path_to_private,path_to_output) -> '1 file: decrypted file':
+    def DecryptFileAsymmetric(self,path_to_encrypted,path_to_private,path_to_output) -> '1 file: decrypted file':
         with open(path_to_private, "rb") as key_file:
             private_key = serialization.load_pem_private_key(
                 key_file.read(),
@@ -167,5 +170,49 @@ class becrypted:
                 label=None
             )
         )
-        with open(path_to_output,'w') as f:
-            f.write(original_message.decode())
+        with open(path_to_output,'wb') as f:
+            f.write(original_message)
+
+    def EncryptHybrid(self,file_in: 'path to input',pub: 'path to public key',sym: 'path to symmetric key',file_out: 'path to output') -> '1 file: encrypted file':
+        self.EncryptFileSymmetric(sym,file_in,'./.output.sym')
+        y = 1
+        with open("./.output.sym", "rb") as f:
+            byte = f.read(50)
+            while byte:
+                if y == 1:
+                    with open(file_out,'ab') as d:
+                        self.EncryptTextAsymmetric(byte.decode(),pub,'./.tmp.bin')
+                        with open('./.tmp.bin','rb') as g:
+                            shode = g.read()
+                        d.write(shode)
+                        os.remove('./.tmp.bin')
+                else:
+                    with open(file_out,'ab') as d:
+                        d.write(byte)
+                byte = f.read(50)
+                y += 1
+        # os.system('sudo rm -rf ./.output.sym')
+        os.remove('./.output.sym')
+
+    def DecryptHybrid(self,file_in: 'path to input',priv: 'path to private key',sym: 'path to symmetric key',file_out: 'path to output') -> '1 file: decrypted file':
+        y = 1
+        with open(file_in, "rb") as f:
+            byte = f.read(256)
+            while byte:
+                if y == 1:
+                    with open('./.sec1.bin','ab') as d:
+                        d.write(byte)
+                else:
+                    with open('./.sec2.sym','ab') as d:
+                        d.write(byte)
+                byte = f.read(256)
+                y += 1
+        self.DecryptFileAsymmetric('./.sec1.bin',priv,'./.final.sym')
+        os.remove('./.sec1.bin')
+        with open('./.final.sym','ab') as f:
+            with open('./.sec2.sym','rb') as h:
+                t = h.read()
+            f.write(t)
+        os.remove('./.sec2.sym')
+        self.DecryptFileSymmetric(sym,'./.final.sym',file_out)        
+        os.remove('./.final.sym')
